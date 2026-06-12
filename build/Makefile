@@ -129,12 +129,50 @@ vector_engine/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/vector_engine.dir/build.make CMakeFiles/vector_engine.dir/build
 .PHONY : vector_engine/fast
 
+#=============================================================================
+# Target rules for targets named run_benchmark
+
+# Build rule for target.
+run_benchmark: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 run_benchmark
+.PHONY : run_benchmark
+
+# fast build rule for target.
+run_benchmark/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_benchmark.dir/build.make CMakeFiles/run_benchmark.dir/build
+.PHONY : run_benchmark/fast
+
+benchmarks/perf_benchmark.o: benchmarks/perf_benchmark.cpp.o
+.PHONY : benchmarks/perf_benchmark.o
+
+# target to build an object file
+benchmarks/perf_benchmark.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_benchmark.dir/build.make CMakeFiles/run_benchmark.dir/benchmarks/perf_benchmark.cpp.o
+.PHONY : benchmarks/perf_benchmark.cpp.o
+
+benchmarks/perf_benchmark.i: benchmarks/perf_benchmark.cpp.i
+.PHONY : benchmarks/perf_benchmark.i
+
+# target to preprocess a source file
+benchmarks/perf_benchmark.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_benchmark.dir/build.make CMakeFiles/run_benchmark.dir/benchmarks/perf_benchmark.cpp.i
+.PHONY : benchmarks/perf_benchmark.cpp.i
+
+benchmarks/perf_benchmark.s: benchmarks/perf_benchmark.cpp.s
+.PHONY : benchmarks/perf_benchmark.s
+
+# target to generate assembly for a file
+benchmarks/perf_benchmark.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_benchmark.dir/build.make CMakeFiles/run_benchmark.dir/benchmarks/perf_benchmark.cpp.s
+.PHONY : benchmarks/perf_benchmark.cpp.s
+
 src/hnsw_index.o: src/hnsw_index.cpp.o
 .PHONY : src/hnsw_index.o
 
 # target to build an object file
 src/hnsw_index.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/vector_engine.dir/build.make CMakeFiles/vector_engine.dir/src/hnsw_index.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_benchmark.dir/build.make CMakeFiles/run_benchmark.dir/src/hnsw_index.cpp.o
 .PHONY : src/hnsw_index.cpp.o
 
 src/hnsw_index.i: src/hnsw_index.cpp.i
@@ -143,6 +181,7 @@ src/hnsw_index.i: src/hnsw_index.cpp.i
 # target to preprocess a source file
 src/hnsw_index.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/vector_engine.dir/build.make CMakeFiles/vector_engine.dir/src/hnsw_index.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_benchmark.dir/build.make CMakeFiles/run_benchmark.dir/src/hnsw_index.cpp.i
 .PHONY : src/hnsw_index.cpp.i
 
 src/hnsw_index.s: src/hnsw_index.cpp.s
@@ -151,6 +190,7 @@ src/hnsw_index.s: src/hnsw_index.cpp.s
 # target to generate assembly for a file
 src/hnsw_index.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/vector_engine.dir/build.make CMakeFiles/vector_engine.dir/src/hnsw_index.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_benchmark.dir/build.make CMakeFiles/run_benchmark.dir/src/hnsw_index.cpp.s
 .PHONY : src/hnsw_index.cpp.s
 
 src/main.o: src/main.cpp.o
@@ -183,6 +223,7 @@ src/math_utils.o: src/math_utils.cpp.o
 # target to build an object file
 src/math_utils.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/vector_engine.dir/build.make CMakeFiles/vector_engine.dir/src/math_utils.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_benchmark.dir/build.make CMakeFiles/run_benchmark.dir/src/math_utils.cpp.o
 .PHONY : src/math_utils.cpp.o
 
 src/math_utils.i: src/math_utils.cpp.i
@@ -191,6 +232,7 @@ src/math_utils.i: src/math_utils.cpp.i
 # target to preprocess a source file
 src/math_utils.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/vector_engine.dir/build.make CMakeFiles/vector_engine.dir/src/math_utils.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_benchmark.dir/build.make CMakeFiles/run_benchmark.dir/src/math_utils.cpp.i
 .PHONY : src/math_utils.cpp.i
 
 src/math_utils.s: src/math_utils.cpp.s
@@ -199,6 +241,7 @@ src/math_utils.s: src/math_utils.cpp.s
 # target to generate assembly for a file
 src/math_utils.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/vector_engine.dir/build.make CMakeFiles/vector_engine.dir/src/math_utils.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_benchmark.dir/build.make CMakeFiles/run_benchmark.dir/src/math_utils.cpp.s
 .PHONY : src/math_utils.cpp.s
 
 # Help Target
@@ -209,7 +252,11 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... run_benchmark"
 	@echo "... vector_engine"
+	@echo "... benchmarks/perf_benchmark.o"
+	@echo "... benchmarks/perf_benchmark.i"
+	@echo "... benchmarks/perf_benchmark.s"
 	@echo "... src/hnsw_index.o"
 	@echo "... src/hnsw_index.i"
 	@echo "... src/hnsw_index.s"

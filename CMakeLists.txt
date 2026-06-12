@@ -5,8 +5,14 @@ project(VectorSearchEngine VERSION 1.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Tell CMake where to look for header files (.hpp)
+# SYSTEM OPTIMIZATION: Enable AVX2 hardware acceleration globally for all builds
+add_compile_options(-O3 -march=native -mavx2 -mfma)
+
+# Tell CMake where to look for header files
 include_directories(include)
 
-# Compile the main executable using these specific files
+# 1. The old Milestone executable
 add_executable(vector_engine src/main.cpp src/math_utils.cpp src/hnsw_index.cpp)
+
+# 2. The Benchmark executable
+add_executable(run_benchmark benchmarks/perf_benchmark.cpp src/math_utils.cpp src/hnsw_index.cpp)

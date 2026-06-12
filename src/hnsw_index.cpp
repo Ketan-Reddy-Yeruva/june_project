@@ -2,6 +2,8 @@
 #include "math_utils.hpp"
 #include <cmath>
 #include <algorithm>
+#include <unordered_set>
+#include <queue>
 
 namespace VectorEngine {
 
@@ -9,7 +11,13 @@ namespace VectorEngine {
         has_entry_point = false;
         entry_point_id = -1;
         max_current_level = 0;
+        current_visit_mark = 0; // ADD THIS
     }
+    // HNSWIndex::HNSWIndex() : m_L(0.5), distribution(0.0, 1.0) {
+    //     has_entry_point = false;
+    //     entry_point_id = -1;
+    //     max_current_level = 0;
+    // }
 
     // 1. The Math: Assigns a random layer using Geometric Distribution
     int HNSWIndex::generate_random_level() {
@@ -18,25 +26,193 @@ namespace VectorEngine {
         return static_cast<int>(-std::log(r) * m_L);
     }
 
-    // 2. Single Layer Hop: Same as Milestone 2, but restricted to a specific layer
     int HNSWIndex::search_layer(int entry_node, const std::vector<float>& query, int layer) {
-        int current_node_id = entry_node;
-        float current_min_dist = euclidean_distance(query, nodes[current_node_id].data);
-        bool changed = true;
+        int ef = 80; 
+        
+        // Advance the "Epoch" - we are on a new search, so we look for the new number!
+        current_visit_mark++; 
 
-        while (changed) {
-            changed = false;
-            for (int friend_id : nodes[current_node_id].neighbors[layer]) {
-                float friend_dist = euclidean_distance(query, nodes[friend_id].data);
-                if (friend_dist < current_min_dist) {
-                    current_min_dist = friend_dist;
-                    current_node_id = friend_id;
-                    changed = true;
+        std::priority_queue<std::pair<float, int>, std::vector<std::pair<float, int>>, std::greater<>> candidates;
+        std::priority_queue<std::pair<float, int>> top_results;
+
+        float initial_dist = euclidean_distance(query, nodes[entry_node].data);
+        candidates.push({initial_dist, entry_node});
+        top_results.push({initial_dist, entry_node});
+        
+        // Mark the entry node with our current epoch number
+        visited_array[entry_node] = current_visit_mark;
+
+        while (!candidates.empty()) {
+            auto current = candidates.top();
+            candidates.pop();
+
+            if (current.first > top_results.top().first) {
+                break; 
+            }
+
+            for (int friend_id : nodes[current.second].neighbors[layer]) {
+                // O(1) Check: Does this friend have our current epoch number?
+                if (visited_array[friend_id] != current_visit_mark) {
+                    
+                    // Mark it as visited!
+                    visited_array[friend_id] = current_visit_mark;
+                    
+                    float friend_dist = euclidean_distance(query, nodes[friend_id].data);
+
+                    if (top_results.size() < ef || friend_dist < top_results.top().first) {
+                        candidates.push({friend_dist, friend_id});
+                        top_results.push({friend_dist, friend_id});
+                        
+                        if (top_results.size() > ef) {
+                            top_results.pop();
+                        }
+                    }
                 }
             }
         }
-        return current_node_id;
+
+        int best_id = -1;
+        float best_dist = 999999.0f;
+        while (!top_results.empty()) {
+            if (top_results.top().first < best_dist) {
+                best_dist = top_results.top().first;
+                best_id = top_results.top().second;
+            }
+            top_results.pop();
+        }
+        
+        return best_id;
     }
+    // int HNSWIndex::search_layer(int entry_node, const std::vector<float>& query, int layer) {
+    //     int ef = 50; // Beam width
+        
+    //     std::priority_queue<std::pair<float, int>, std::vector<std::pair<float, int>>, std::greater<>> candidates;
+    //     std::priority_queue<std::pair<float, int>> top_results;
+        
+    //     // SYSTEMS OPTIMIZATION: Use a flat vector instead of an unordered_set. 
+    //     // This avoids thousands of slow heap allocations.
+    //     std::vector<bool> visited(nodes.size(), false);
+
+    //     float initial_dist = euclidean_distance(query, nodes[entry_node].data);
+    //     candidates.push({initial_dist, entry_node});
+    //     top_results.push({initial_dist, entry_node});
+    //     visited[entry_node] = true;
+
+    //     while (!candidates.empty()) {
+    //         auto current = candidates.top();
+    //         candidates.pop();
+
+    //         if (current.first > top_results.top().first) {
+    //             break; 
+    //         }
+
+    //         for (int friend_id : nodes[current.second].neighbors[layer]) {
+    //             // Blazing fast O(1) direct array lookup
+    //             if (!visited[friend_id]) {
+    //                 visited[friend_id] = true;
+    //                 float friend_dist = euclidean_distance(query, nodes[friend_id].data);
+
+    //                 if (top_results.size() < ef || friend_dist < top_results.top().first) {
+    //                     candidates.push({friend_dist, friend_id});
+    //                     top_results.push({friend_dist, friend_id});
+                        
+    //                     if (top_results.size() > ef) {
+    //                         top_results.pop();
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     int best_id = -1;
+    //     float best_dist = 999999.0f;
+    //     while (!top_results.empty()) {
+    //         if (top_results.top().first < best_dist) {
+    //             best_dist = top_results.top().first;
+    //             best_id = top_results.top().second;
+    //         }
+    //         top_results.pop();
+    //     }
+        
+    //     return best_id;
+    // }
+
+    // The upgraded Beam Search algorithm (ef = Expansion Factor)
+    // int HNSWIndex::search_layer(int entry_node, const std::vector<float>& query, int layer) {
+    //     int ef = 50; // The "Beam Width". Higher = slower but MUCH more accurate.
+        
+    //     // Min-heap to find the closest candidates to explore next
+    //     std::priority_queue<std::pair<float, int>, std::vector<std::pair<float, int>>, std::greater<>> candidates;
+    //     // Max-heap to keep track of the absolute best 'ef' results we've found so far
+    //     std::priority_queue<std::pair<float, int>> top_results;
+    //     std::unordered_set<int> visited;
+
+    //     float initial_dist = euclidean_distance(query, nodes[entry_node].data);
+    //     candidates.push({initial_dist, entry_node});
+    //     top_results.push({initial_dist, entry_node});
+    //     visited.insert(entry_node);
+
+    //     while (!candidates.empty()) {
+    //         auto current = candidates.top();
+    //         candidates.pop();
+
+    //         // If our closest unexplored node is further than our worst top result, we can safely stop exploring
+    //         if (current.first > top_results.top().first) {
+    //             break; 
+    //         }
+
+    //         for (int friend_id : nodes[current.second].neighbors[layer]) {
+    //             // Only evaluate friends we haven't seen yet
+    //             if (visited.find(friend_id) == visited.end()) {
+    //                 visited.insert(friend_id);
+    //                 float friend_dist = euclidean_distance(query, nodes[friend_id].data);
+
+    //                 // If our basket isn't full, or this friend is better than our worst result
+    //                 if (top_results.size() < ef || friend_dist < top_results.top().first) {
+    //                     candidates.push({friend_dist, friend_id});
+    //                     top_results.push({friend_dist, friend_id});
+                        
+    //                     // Keep basket size strictly at 'ef'
+    //                     if (top_results.size() > ef) {
+    //                         top_results.pop();
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     // We want to return the absolute best node in our basket
+    //     int best_id = -1;
+    //     float best_dist = 999999.0f;
+    //     while (!top_results.empty()) {
+    //         if (top_results.top().first < best_dist) {
+    //             best_dist = top_results.top().first;
+    //             best_id = top_results.top().second;
+    //         }
+    //         top_results.pop();
+    //     }
+        
+    //     return best_id;
+    // }
+    // // 2. Single Layer Hop: Same as Milestone 2, but restricted to a specific layer
+    // int HNSWIndex::search_layer(int entry_node, const std::vector<float>& query, int layer) {
+    //     int current_node_id = entry_node;
+    //     float current_min_dist = euclidean_distance(query, nodes[current_node_id].data);
+    //     bool changed = true;
+
+    //     while (changed) {
+    //         changed = false;
+    //         for (int friend_id : nodes[current_node_id].neighbors[layer]) {
+    //             float friend_dist = euclidean_distance(query, nodes[friend_id].data);
+    //             if (friend_dist < current_min_dist) {
+    //                 current_min_dist = friend_dist;
+    //                 current_node_id = friend_id;
+    //                 changed = true;
+    //             }
+    //         }
+    //     }
+    //     return current_node_id;
+    // }
 
     // 3. Multi-Layer Search (The Google Highway)
     int HNSWIndex::search(const std::vector<float>& query) {
@@ -55,6 +231,10 @@ namespace VectorEngine {
 
     // 4. Multi-Layer Insertion
     void HNSWIndex::add_vector(int id, const std::vector<float>& data) {
+        if (id >= nodes.size()) {
+            nodes.resize(id + 1);
+            visited_array.resize(id + 1, 0);
+        }
         int level = generate_random_level();
         
         // Initialize node with enough empty arrays to support its assigned level
@@ -75,7 +255,7 @@ namespace VectorEngine {
         }
 
         // Phase 2: Insert and make friends at all assigned layers (from 'level' down to 0)
-        int max_connections = 3; 
+        int max_connections = 32; 
         for (int curr_layer = std::min(level, max_current_level); curr_layer >= 0; --curr_layer) {
             current_node = search_layer(current_node, data, curr_layer);
             

@@ -7,7 +7,11 @@
 namespace VectorEngine {
     class HNSWIndex {
     private:
-        std::unordered_map<int, Node> nodes;
+    
+        std::vector<int> visited_array;
+        int current_visit_mark;
+        // std::unordered_map<int, Node> nodes;
+        std::vector<Node> nodes;
         int entry_point_id;
         int max_current_level;   // Tracks the highest layer currently in our graph
         bool has_entry_point;

@@ -1,1 +1,1 @@
-/usr/bin/c++ CMakeFiles/vector_engine.dir/src/main.cpp.o CMakeFiles/vector_engine.dir/src/math_utils.cpp.o CMakeFiles/vector_engine.dir/src/hnsw_index.cpp.o -o vector_engine 
+/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/vector_engine.dir/src/main.cpp.o CMakeFiles/vector_engine.dir/src/math_utils.cpp.o CMakeFiles/vector_engine.dir/src/hnsw_index.cpp.o -o vector_engine 

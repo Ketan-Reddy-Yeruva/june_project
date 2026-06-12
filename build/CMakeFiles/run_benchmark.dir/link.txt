@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/run_benchmark.dir/benchmarks/perf_benchmark.cpp.o CMakeFiles/run_benchmark.dir/src/math_utils.cpp.o CMakeFiles/run_benchmark.dir/src/hnsw_index.cpp.o -o run_benchmark 
